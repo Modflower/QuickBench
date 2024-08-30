@@ -26,6 +26,7 @@
 
 package tfar.fastbench.mixin;
 
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.minecraft.world.Container;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.TransientCraftingContainer;
@@ -33,7 +34,6 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import tfar.fastbench.interfaces.CraftingInventoryDuck;
 
 @Mixin(TransientCraftingContainer.class)
@@ -55,9 +55,9 @@ public class CraftingContainerMixin implements CraftingInventoryDuck {
 		return this.checkMatrixChanges;
 	}
 
-	@Redirect(method = {"removeItem",
+	@WrapWithCondition(method = {"removeItem",
 			"setItem"}, at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;slotsChanged(Lnet/minecraft/world/Container;)V"))
-	private void checkForChanges(AbstractContainerMenu screenHandler, Container inventory) {
-		if (checkMatrixChanges) menu.slotsChanged((Container) this);
+	private boolean checkForChanges(AbstractContainerMenu screenHandler, Container inventory) {
+		return checkMatrixChanges;
 	}
 }

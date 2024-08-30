@@ -28,15 +28,22 @@ package tfar.fastbench.mixin;
 
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.*;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.CraftingMenu;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.RecipeBookMenu;
+import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import tfar.fastbench.MixinHooks;
@@ -63,9 +70,9 @@ abstract class CraftingMenuMixin<C extends Container> extends RecipeBookMenu<C> 
 		super(type, syncId);
 	}
 
-	@Overwrite
-	public void slotsChanged(Container inventory) {
-		access.execute((lvl, pos) -> MixinHooks.slotChangedCraftingGrid(this.player.level(), craftSlots, resultSlots));
+	@Redirect(method = "method_17401", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/CraftingMenu;slotChangedCraftingGrid(Lnet/minecraft/world/inventory/AbstractContainerMenu;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/inventory/CraftingContainer;Lnet/minecraft/world/inventory/ResultContainer;)V"))
+	private void hookChangedCraftingGrid(AbstractContainerMenu self, Level level, Player player, CraftingContainer craftSlots, ResultContainer resultSlots) {
+		MixinHooks.slotChangedCraftingGrid(level, craftSlots, resultSlots);
 	}
 
 	@Inject(method = "quickMoveStack", at = @At("HEAD"), cancellable = true)
