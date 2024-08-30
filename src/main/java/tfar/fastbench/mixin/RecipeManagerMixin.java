@@ -34,9 +34,13 @@ public class RecipeManagerMixin {
 	//note: C is actually CraftingInventory, treat it accordingly
 	@Inject(method = "getRemainingItemsFor",at = @At("HEAD"),cancellable = true)
 	private <C extends Container, T extends Recipe<C>> void techRebornWorkAround(RecipeType<T> recipeType, C craftInput, Level world, CallbackInfoReturnable<NonNullList<ItemStack>> cir) {
-		if (MixinHooks.hascachedrecipe) {
-			if (MixinHooks.lastRecipe != null) cir.setReturnValue(MixinHooks.lastRecipe.getRemainingItems((CraftingContainer) craftInput));
-			else cir.setReturnValue(((CraftingInventoryAccessor) craftInput).getItems());
+		// Explicit check on CraftingInventoryAccessor resolves crash relating to Traveler's Backpack
+		if (MixinHooks.hascachedrecipe && craftInput instanceof CraftingInventoryAccessor accessor) {
+			if (MixinHooks.lastRecipe != null) {
+				cir.setReturnValue(MixinHooks.lastRecipe.getRemainingItems((CraftingContainer) craftInput));
+			} else {
+				cir.setReturnValue(accessor.getItems());
+			}
 			MixinHooks.hascachedrecipe = false;
 		}
 	}
