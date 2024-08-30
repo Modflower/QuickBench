@@ -66,6 +66,11 @@ public class CraftingResultSlotMixin extends Slot {
 
 	@Redirect(method = "remove", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/Slot;remove(I)Lnet/minecraft/world/item/ItemStack;"))
 	private ItemStack copy(Slot slot, int amount) {
+		// Prevents mass-drop from looping endlessly.
+		// This does rely on the server to update the slot again, which is fine.
+		if (player.level().isClientSide) {
+			return super.remove(amount);
+		}
 		return slot.getItem().copy();
 	}
 
