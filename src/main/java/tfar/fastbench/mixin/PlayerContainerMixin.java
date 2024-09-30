@@ -29,7 +29,11 @@ package tfar.fastbench.mixin;
 
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.*;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -55,7 +59,7 @@ abstract class PlayerContainerMixin extends AbstractContainerMenu implements Cra
 	@Final
 	private ResultContainer resultSlots;
 
-	@Inject(method = "slotsChanged", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "slotsChanged", at = @At("HEAD"))
 	private void updateResult(Container inventory, CallbackInfo ci) {
 		MixinHooks.slotChangedCraftingGrid(owner.level(), craftSlots, resultSlots);
 	}

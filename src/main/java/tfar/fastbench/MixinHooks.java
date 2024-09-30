@@ -38,7 +38,7 @@ import net.minecraft.world.level.Level;
 import tfar.fastbench.interfaces.CraftingInventoryDuck;
 import tfar.fastbench.mixin.ContainerAccessor;
 
-public class MixinHooks {
+public final class MixinHooks {
 
 	public static boolean hascachedrecipe = false;
 

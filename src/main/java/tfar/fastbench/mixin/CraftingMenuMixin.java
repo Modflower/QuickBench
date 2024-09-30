@@ -29,7 +29,6 @@ package tfar.fastbench.mixin;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -58,13 +57,6 @@ abstract class CraftingMenuMixin<C extends Container> extends RecipeBookMenu<C> 
 	@Shadow
 	@Final
 	private ResultContainer resultSlots;
-	@Shadow
-	@Final
-	private Player player;
-
-	@Shadow
-	@Final
-	private ContainerLevelAccess access;
 
 	protected CraftingMenuMixin(@Nullable MenuType<?> type, int syncId) {
 		super(type, syncId);
