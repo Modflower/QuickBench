@@ -65,6 +65,9 @@ publishing {
     }
 }
 
+
+import net.darkhax.curseforgegradle.TaskPublishCurseForge
+
 import java.nio.charset.StandardCharsets
 
 final ref = System.getenv("GITHUB_REF")
@@ -80,15 +83,18 @@ final type = System.getenv("RELEASE_OVERRIDE") ?:
 
 final minecraftCompatible = libs.versions.minecraft.compatible.get().split(",").toList()
 
-curseforge {
-    project {
-        apiKey = System.getenv("CURSEFORGE_TOKEN")
-        id = curseforgeId
-        changelog = _changelog
-        releaseType = type
-        gameVersionStrings.addAll(minecraftCompatible)
-        mainArtifact(remapJar)
-    }
+task curseforge(type: TaskPublishCurseForge) {
+    apiToken = System.getenv("CURSEFORGE_TOKEN")
+
+    final def mainFile = upload(curseforgeId, tasks.remapJar)
+
+    mainFile.changelog = _changelog
+    mainFile.changelogType = "markdown"
+    mainFile.releaseType = type
+    mainFile.addJavaVersion("Java " + java.targetCompatibility.majorVersion)
+    mainFile.addGameVersion(*minecraftCompatible)
+    mainFile.addEnvironment("Server")
+    mainFile.addModLoader("Fabric", "Quilt")
 }
 
 modrinth {

@@ -13,7 +13,7 @@ annotations = "26.+"
 # Plugins
 loom = "1.13.+"
 minotaur = "2.+"
-cursegradle = "1.4.0"
+cursegradle = "1.1.26"
 
 [libraries]
 # Minecraft
@@ -31,4 +31,4 @@ mod_runtime = []
 [plugins]
 loom = { id = "fabric-loom", version.ref = "loom" }
 minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }
-cursegradle = { id = "com.matthewprenger.cursegradle", version.ref = "cursegradle" }
+cursegradle = { id = "net.darkhax.curseforgegradle", version.ref = "cursegradle" }
