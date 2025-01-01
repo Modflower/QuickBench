@@ -105,9 +105,11 @@ public class MixinHooks {
 					return ItemStack.EMPTY;
 				}
 
-				resultSlot.onTake(player, recipeOutput);
+				if (!recipeOutput.isEmpty()) {
+					player.drop(recipeOutput.copyAndClear(), false, true);
+				}
 
-				//player.drop(resultSlot.getItem(), false);
+				resultSlot.onTake(player, recipeOutput);
 			}
 			duck.setCheckMatrixChanges(true);
 			slotChangedCraftingGrid(player.level(), input, craftResult);
