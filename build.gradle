@@ -70,8 +70,8 @@ import java.nio.charset.StandardCharsets
 final ref = System.getenv("GITHUB_REF")
 final String _changelog = System.getenv("CHANGELOG") ?:
         (ref != null && ref.startsWith("refs/tags/")) ?
-                "You may view the changelog at https://github.com/Modflower/music-moods/releases/tag/${URLEncoder.encode(ref.substring(10), StandardCharsets.UTF_8)}" :
-                "No changelog is available. Perhaps poke at https://github.com/Modflower/music-moods for a changelog?"
+                "You may view the changelog at https://github.com/Modflower/QuickBench/releases/tag/${URLEncoder.encode(ref.substring(10), StandardCharsets.UTF_8)}" :
+                "No changelog is available. Perhaps poke at https://github.com/Modflower/QuickBench for a changelog?"
 
 final type = System.getenv("RELEASE_OVERRIDE") ?:
         projectVersion?.contains("alpha") ? "alpha" :
