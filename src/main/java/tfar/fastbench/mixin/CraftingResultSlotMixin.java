@@ -27,9 +27,14 @@
 package tfar.fastbench.mixin;
 
 
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.*;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.RecipeHolder;
+import net.minecraft.world.inventory.ResultContainer;
+import net.minecraft.world.inventory.ResultSlot;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import org.spongepowered.asm.mixin.Final;
@@ -42,7 +47,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import tfar.fastbench.MixinHooks;
 import tfar.fastbench.interfaces.CraftingInventoryDuck;
 
-import java.util.Collections;
 import java.util.List;
 
 @Mixin(ResultSlot.class)
@@ -73,23 +77,34 @@ public class CraftingResultSlotMixin extends Slot {
 		//do nothing
 	}
 
-	@Redirect(method = "checkTakeAchievements",
-			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/RecipeHolder;awardUsedRecipes(Lnet/minecraft/world/entity/player/Player;Ljava/util/List;)V"))
-	public void no(final RecipeHolder instance, final Player player, final List<ItemStack> list) {
-		if (((CraftingInventoryDuck) craftSlots).getCheckMatrixChanges() &&
-				this.container instanceof RecipeHolder recipeHolder) {
-			var recipeUsed = recipeHolder.getRecipeUsed();
-			if (recipeUsed != null && !recipeUsed.isSpecial()) {
-				player.awardRecipes(Collections.singleton(recipeUsed));
-			}
+	// An originally misunderstood method.
+	// Prevents spamming advancements, which can be laggy, and duplication bugs.
+	// Allows mods hooking into the system to continue functioning regardless
+	@WrapWithCondition(
+		method = "checkTakeAchievements",
+		at = @At(
+			value = "INVOKE",
+			target = "Lnet/minecraft/world/inventory/RecipeHolder;awardUsedRecipes(Lnet/minecraft/world/entity/player/Player;Ljava/util/List;)V"
+		)
+	)
+	public boolean forceOneShot(final RecipeHolder instance, final Player player, final List<ItemStack> list) {
+		if (craftSlots instanceof CraftingInventoryDuck duck) {
+			return duck.getCheckMatrixChanges();
 		}
+		return true;
 	}
 
 	//this.container is actually the crafting result inventory so it's a safe cast
 	//using an inject instead of a redirect as a workaround for tech reborn's BS
-	@Inject(method = "onTake", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/crafting/RecipeManager;getRemainingItemsFor(Lnet/minecraft/world/item/crafting/RecipeType;Lnet/minecraft/world/Container;Lnet/minecraft/world/level/Level;)Lnet/minecraft/core/NonNullList;"))
+	@Inject(
+		method = "onTake",
+		at = @At(
+			value = "INVOKE",
+			target = "Lnet/minecraft/world/item/crafting/RecipeManager;getRemainingItemsFor(Lnet/minecraft/world/item/crafting/RecipeType;Lnet/minecraft/world/Container;Lnet/minecraft/world/level/Level;)Lnet/minecraft/core/NonNullList;"
+		)
+	)
 	private void cache(Player player, ItemStack stack, CallbackInfo ci) {
-		Recipe<CraftingContainer> lastRecipe = (Recipe<CraftingContainer>) ((ResultContainer)this.container).getRecipeUsed();
+		Recipe<CraftingContainer> lastRecipe = (Recipe<CraftingContainer>) ((ResultContainer) this.container).getRecipeUsed();
 		MixinHooks.lastRecipe = lastRecipe != null && lastRecipe.matches(craftSlots, player.level()) ? lastRecipe : null;
 		MixinHooks.hascachedrecipe = true;
 	}

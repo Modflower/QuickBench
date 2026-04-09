@@ -38,8 +38,6 @@ import net.minecraft.world.level.Level;
 import tfar.fastbench.interfaces.CraftingInventoryDuck;
 import tfar.fastbench.mixin.ContainerAccessor;
 
-import java.util.Collections;
-
 public class MixinHooks {
 
 	public static boolean hascachedrecipe = false;
@@ -71,15 +69,32 @@ public class MixinHooks {
 		Recipe<CraftingContainer> recipe = (Recipe<CraftingContainer>) craftResult.getRecipeUsed();
 
 		if (recipe != null && resultSlot != null && resultSlot.hasItem()) {
+			boolean firedCriterion = false;
+
 			while (recipe.matches(input, player.level())) {
 				ItemStack recipeOutput = resultSlot.getItem().copy();
 				outputCopy = recipeOutput.copy();
 
 				recipeOutput.getItem().onCraftedBy(recipeOutput, player.level(), player);
 
-				if (!player.level().isClientSide && !((ContainerAccessor) container).insert(recipeOutput, outStart, outEnd, true)) {
+				if (!player.level().isClientSide && !((ContainerAccessor) container).insert(
+					recipeOutput,
+					outStart,
+					outEnd,
+					true
+				)) {
 					duck.setCheckMatrixChanges(true);
 					return ItemStack.EMPTY;
+				}
+
+				if (!firedCriterion) {
+					// Award the player the recipe for using it. Mimics vanilla behaviour.
+					craftResult.awardUsedRecipes(player, input.getItems());
+					// Prevents duplication.
+					// Ideally, setRecipeUsed is suppressed in the container,
+					// but we don't have sufficient context to do that.
+					craftResult.setRecipeUsed(recipe);
+					firedCriterion = true;
 				}
 
 				resultSlot.onQuickCraft(recipeOutput, outputCopy);
@@ -96,11 +111,6 @@ public class MixinHooks {
 			}
 			duck.setCheckMatrixChanges(true);
 			slotChangedCraftingGrid(player.level(), input, craftResult);
-
-			// Award the player the recipe for using it. Mimics vanilla behaviour.
-			if (!recipe.isSpecial()) {
-				player.awardRecipes(Collections.singleton(recipe));
-			}
 		}
 		duck.setCheckMatrixChanges(true);
 		return recipe == null ? ItemStack.EMPTY : outputCopy;
