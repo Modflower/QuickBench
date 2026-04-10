@@ -27,7 +27,8 @@
 package tfar.fastbench.mixin;
 
 
-import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -83,20 +84,23 @@ public class CraftingResultSlotMixin extends Slot {
 	}
 
 	// An originally misunderstood method.
-	// Prevents spamming advancements, which can be laggy, and duplication bugs.
+	// Prevents spamming advancements during quick-crafting, and duplication bugs.
 	// Allows mods hooking into the system to continue functioning regardless
-	@WrapWithCondition(
+	@WrapOperation(
 		method = "checkTakeAchievements",
 		at = @At(
 			value = "INVOKE",
 			target = "Lnet/minecraft/world/inventory/RecipeHolder;awardUsedRecipes(Lnet/minecraft/world/entity/player/Player;Ljava/util/List;)V"
 		)
 	)
-	public boolean forceOneShot(final RecipeHolder instance, final Player player, final List<ItemStack> list) {
-		if (craftSlots instanceof CraftingInventoryDuck duck) {
-			return duck.getCheckMatrixChanges();
+	public void forceOneShot(final RecipeHolder instance, final Player player, final List<ItemStack> list, final Operation<Void> operation) {
+		if (craftSlots instanceof CraftingInventoryDuck duck && duck.getCheckMatrixChanges()) {
+			// Duplication bugs prevention.
+			// I really need to investigate a bit deeper why the recipe getting cleared causes those.
+			final var recipe = instance.getRecipeUsed();
+			operation.call(instance, player, list);
+			instance.setRecipeUsed(recipe);
 		}
-		return true;
 	}
 
 	//this.container is actually the crafting result inventory so it's a safe cast
