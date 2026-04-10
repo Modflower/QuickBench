@@ -39,6 +39,9 @@ import tfar.fastbench.interfaces.CraftingInventoryDuck;
 import tfar.fastbench.mixin.ContainerAccessor;
 
 public final class MixinHooks {
+	// Allows enabling the antispam, if desired for some reason.
+	// Will remain intentionally undocumented outside of source.
+	private static final boolean advancementAntispam = Boolean.getBoolean("quickbench.advancmenetAntispam");
 
 	public static boolean hascachedrecipe = false;
 
@@ -87,7 +90,7 @@ public final class MixinHooks {
 					return ItemStack.EMPTY;
 				}
 
-				if (!firedCriterion) {
+				if (!advancementAntispam || !firedCriterion) {
 					// Award the player the recipe for using it. Mimics vanilla behaviour.
 					craftResult.awardUsedRecipes(player, input.getItems());
 					// Prevents duplication.
